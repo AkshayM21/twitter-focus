@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="28" fill="#172B3A"/>
+  <rect x="8" y="8" width="112" height="112" rx="21" fill="#F3EEE5"/>
+  <!-- An editorial page edge: a deliberate boundary, not a brand mark. -->
+  <rect x="43" y="22" width="10" height="84" rx="5" fill="#172B3A"/>
+  <rect x="73" y="38" width="10" height="52" rx="5" fill="#2C6E9F"/>
+  <rect x="89" y="38" width="10" height="52" rx="5" fill="#2C6E9F"/>
+  <rect x="70" y="98" width="32" height="6" rx="3" fill="#2C6E9F"/>
+</svg>

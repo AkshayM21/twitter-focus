@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Twitter Focus settings</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <main class="settings" aria-labelledby="page-title" aria-busy="true">
+      <header class="page-header">
+        <p class="product-name">Twitter Focus</p>
+        <h1 id="page-title">Home feed settings</h1>
+        <p class="introduction">
+          Keep the parts of Twitter you use while putting a deliberate boundary around Home.
+        </p>
+      </header>
+
+      <p class="load-error" id="load-error" role="alert" hidden></p>
+
+      <form id="settings-form">
+        <section class="setting-section" aria-labelledby="mode-heading">
+          <div class="section-heading">
+            <h2 id="mode-heading">How Home opens</h2>
+            <p>Choose whether Home can be opened with a deliberate daily session.</p>
+          </div>
+
+          <fieldset class="choice-list">
+            <legend class="visually-hidden">How Home opens</legend>
+            <label class="choice-row">
+              <input type="radio" name="mode" value="intentional_session">
+              <span>
+                <strong>Intentional session</strong>
+                <small>
+                  Home stays paused until you choose to start. Only visible, focused Home time counts.
+                </small>
+              </span>
+            </label>
+            <label class="choice-row">
+              <input type="radio" name="mode" value="always_block">
+              <span>
+                <strong>Always paused</strong>
+                <small>
+                  The Home feed remains unavailable. Individual tweets and the rest of Twitter still work.
+                </small>
+              </span>
+            </label>
+          </fieldset>
+        </section>
+
+        <section class="setting-section" aria-labelledby="limit-heading">
+          <div class="section-heading split-heading">
+            <div>
+              <h2 id="limit-heading">Daily session length</h2>
+              <p>Choose how much active Home time is available each day.</p>
+            </div>
+            <label class="select-label">
+              <span class="visually-hidden">Daily session length</span>
+              <select id="daily-limit" name="dailyLimitMinutes">
+                <option value="5">5 minutes</option>
+                <option value="10">10 minutes</option>
+                <option value="15">15 minutes</option>
+                <option value="20">20 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="45">45 minutes</option>
+                <option value="60">60 minutes</option>
+              </select>
+            </label>
+          </div>
+          <p class="policy-note">
+            Increasing the limit never adds time to the current day. More permissive changes begin at the next reset.
+          </p>
+        </section>
+
+        <aside class="pending-notice" id="pending-notice" aria-live="polite" hidden>
+          <strong id="pending-title">A change is scheduled.</strong>
+          <span id="pending-description"></span>
+        </aside>
+
+        <section class="setting-section explanatory" aria-labelledby="reset-heading">
+          <div class="section-heading">
+            <h2 id="reset-heading">Calendar-day reset</h2>
+            <p>Your daily allowance refreshes at local midnight.</p>
+          </div>
+        </section>
+
+        <section class="setting-section explanatory" aria-labelledby="counting-heading">
+          <div class="section-heading">
+            <h2 id="counting-heading">What counts</h2>
+            <p>
+              Time counts only while you are on Home, the tab is visible, and the browser window is focused.
+              Tweets, replies, profiles, search, and messages never use this time.
+            </p>
+          </div>
+        </section>
+
+        <section class="setting-section explanatory" aria-labelledby="lock-heading">
+          <div class="section-heading">
+            <h2 id="lock-heading">When time runs out</h2>
+            <p>
+              Home stays paused until the next calendar day. There is no override or same-day usage reset.
+            </p>
+          </div>
+        </section>
+      </form>
+
+      <footer class="settings-footer">
+        <p id="save-status" role="status" aria-live="polite">Loading settings…</p>
+        <a href="https://x.com/home" target="_blank" rel="noopener noreferrer">Open Home</a>
+      </footer>
+    </main>
+
+    <script src="options.js"></script>
+  </body>
+</html>

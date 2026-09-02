@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Twitter Focus</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="popup" aria-labelledby="product-name" aria-busy="true">
+      <header class="product-header">
+        <div>
+          <h1 id="product-name">Twitter Focus</h1>
+          <p>Home feed control</p>
+        </div>
+        <button class="text-button" id="settings-button" type="button">Settings</button>
+      </header>
+
+      <div class="rule" aria-hidden="true"></div>
+
+      <section class="session" aria-labelledby="session-heading">
+        <p class="state-label" id="session-heading">Loading session…</p>
+        <p class="time" id="remaining-time" role="timer" aria-live="off" aria-atomic="true">—:——</p>
+        <p class="time-caption" id="time-caption">Checking today’s allowance</p>
+        <p class="summary" id="session-summary">Home stays paused while your settings load.</p>
+
+        <button class="primary-action" id="primary-action" type="button" hidden></button>
+        <p class="action-error" id="action-error" role="alert" hidden></p>
+      </section>
+
+      <nav class="quick-links" aria-label="Twitter shortcuts">
+        <a href="https://x.com/home" target="_blank" rel="noopener noreferrer">Home</a>
+        <a href="https://x.com/messages" target="_blank" rel="noopener noreferrer">Messages</a>
+      </nav>
+
+      <footer>
+        <p id="counting-note">Time counts only while Home is visible and focused.</p>
+      </footer>
+
+      <p class="visually-hidden" id="announcer" role="status" aria-live="polite"></p>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,426 @@
+/*
+ * This file is used twice: Chrome injects it into the page for the early gate,
+ * and content.js adopts it inside the blocker Shadow Root for isolated UI styles.
+ */
+
+html[data-twitter-focus-home="true"][data-twitter-focus-feed-hidden="true"]
+  [data-testid="primaryColumn"] > *:not(#twitter-focus-root[data-twitter-focus-owned="true"]) {
+  display: none !important;
+}
+
+html[data-twitter-focus-home="true"] #twitter-focus-root[data-twitter-focus-owned="true"] {
+  display: block !important;
+  min-height: min(760px, 100vh);
+}
+
+html[data-twitter-focus-home="true"] #twitter-focus-root[data-twitter-focus-owned="true"][data-view="active"] {
+  min-height: 0;
+}
+
+html[data-twitter-focus-home="true"] #twitter-focus-root[data-twitter-focus-owned="true"][data-placement="fallback"] {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  min-height: 100vh !important;
+  overflow: auto !important;
+}
+
+html[data-twitter-focus-home="true"][data-twitter-focus-awaiting-primary="true"]:not([data-twitter-focus-fallback-ready="true"])::before {
+  position: fixed;
+  z-index: 2147483647;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  color: #181713;
+  background: #f2efe6;
+  content: "Holding the Home feed…";
+  font: 500 16px/1.5 Iowan Old Style, Baskerville, "Times New Roman", serif;
+  letter-spacing: -0.01em;
+}
+
+html[data-twitter-focus-home="true"] #twitter-focus-root[data-twitter-focus-owned="true"][hidden] {
+  display: none !important;
+}
+
+:host {
+  --paper: #f2efe6;
+  --paper-deep: #e9e3d7;
+  --ink: #181713;
+  --muted: #686258;
+  --hairline: rgba(24, 23, 19, 0.16);
+  --signal: #355f91;
+  --signal-dark: #294c75;
+  --focus: #6e94c0;
+  display: block;
+  min-height: min(760px, 100vh);
+  color: var(--ink);
+  background: var(--paper);
+  color-scheme: light;
+  contain: layout paint style;
+}
+
+:host([data-view="active"]) {
+  min-height: 0;
+  contain: style;
+}
+
+:host * {
+  box-sizing: border-box;
+}
+
+:host .shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: min(760px, 100vh);
+  overflow: hidden;
+  padding: clamp(52px, 10vh, 112px) clamp(30px, 8vw, 78px) 42px;
+  background:
+    linear-gradient(115deg, transparent 0 71%, rgba(76, 65, 48, 0.035) 71% 71.2%, transparent 71.2%),
+    radial-gradient(circle at 84% 14%, rgba(53, 95, 145, 0.08), transparent 29%),
+    var(--paper);
+  font-family: "Avenir Next", Avenir, "Gill Sans", "Trebuchet MS", sans-serif;
+}
+
+:host .session-strip {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  min-height: 48px;
+  border-bottom: 1px solid var(--hairline);
+  padding: 8px 16px 8px 18px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--paper), transparent 2%);
+  font-family: "Avenir Next", Avenir, "Gill Sans", "Trebuchet MS", sans-serif;
+}
+
+:host .session-signal {
+  width: 6px;
+  height: 6px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal), transparent 82%);
+}
+
+:host .session-name {
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+:host .session-time {
+  margin-left: 18px;
+  font-family: Iowan Old Style, Baskerville, "Times New Roman", serif;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.025em;
+}
+
+:host .session-remaining {
+  margin: 1px 15px 0 7px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+:host .strip-button {
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+  border-radius: 0;
+  padding: 3px 0 2px;
+  color: var(--ink);
+  background: transparent;
+  font: 650 11px/1.2 "Avenir Next", Avenir, "Gill Sans", sans-serif;
+  cursor: pointer;
+}
+
+:host .strip-button:hover:not(:disabled) {
+  border-color: var(--signal);
+  color: var(--signal-dark);
+}
+
+:host .strip-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--focus), transparent 40%);
+  outline-offset: 3px;
+}
+
+:host .strip-button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+:host .shell::after {
+  position: absolute;
+  right: -84px;
+  bottom: -94px;
+  width: 248px;
+  height: 248px;
+  border: 1px solid rgba(24, 23, 19, 0.08);
+  border-radius: 50%;
+  content: "";
+  box-shadow:
+    0 0 0 22px var(--paper),
+    0 0 0 23px rgba(24, 23, 19, 0.055),
+    0 0 0 53px var(--paper),
+    0 0 0 54px rgba(24, 23, 19, 0.04);
+  pointer-events: none;
+}
+
+:host .rule {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--signal);
+}
+
+:host .content {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 440px);
+}
+
+:host .mark {
+  display: block;
+  width: 48px;
+  height: 48px;
+  margin: 0 0 48px;
+  color: var(--ink);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: square;
+  stroke-width: 1.25;
+}
+
+:host .mark-dot {
+  fill: var(--signal);
+  stroke: var(--signal);
+}
+
+:host .eyebrow {
+  margin: 0 0 17px;
+  color: var(--signal-dark);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  line-height: 1.4;
+}
+
+:host h1 {
+  max-width: 410px;
+  margin: 0;
+  font-family: Iowan Old Style, Baskerville, "Times New Roman", serif;
+  font-size: clamp(39px, 7vw, 58px);
+  font-weight: 400;
+  letter-spacing: -0.048em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+:host .copy {
+  max-width: 405px;
+  margin: 25px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  letter-spacing: 0.005em;
+  line-height: 1.62;
+}
+
+:host .timer {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 36px;
+}
+
+:host .timer-value {
+  font-family: Iowan Old Style, Baskerville, "Times New Roman", serif;
+  font-size: 38px;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+:host .timer-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:host .meter {
+  width: min(100%, 360px);
+  height: 2px;
+  margin-top: 15px;
+  overflow: hidden;
+  background: var(--hairline);
+}
+
+:host .meter span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--signal);
+  transform-origin: left center;
+  transition: transform 280ms ease;
+}
+
+:host .actions {
+  min-height: 44px;
+  margin-top: 38px;
+}
+
+:host .button {
+  min-height: 44px;
+  margin: 0;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 11px 18px 10px;
+  font: 650 13px/1.2 "Avenir Next", Avenir, "Gill Sans", sans-serif;
+  letter-spacing: 0.015em;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+:host .button-primary {
+  color: var(--paper);
+  background: var(--ink);
+}
+
+:host .button-secondary {
+  color: var(--ink);
+  background: transparent;
+}
+
+:host .button:hover:not(:disabled) {
+  color: #fff;
+  background: var(--signal-dark);
+  border-color: var(--signal-dark);
+  transform: translateY(-1px);
+}
+
+:host .button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+:host .button:disabled {
+  cursor: wait;
+  opacity: 0.52;
+}
+
+:host .button:focus-visible,
+:host .text-button:focus-visible,
+:host a:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--focus), transparent 40%);
+  outline-offset: 3px;
+}
+
+:host .shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-top: 52px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+:host .shortcuts a,
+:host .text-button {
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+  border-radius: 0;
+  padding: 0 0 2px;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+:host .shortcuts a:hover,
+:host .text-button:hover {
+  border-color: var(--signal);
+  color: var(--signal-dark);
+}
+
+:host .aside {
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  margin: 0 0 2px 28px;
+  color: var(--muted);
+  font-family: Iowan Old Style, Baskerville, "Times New Roman", serif;
+  font-size: 12px;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  writing-mode: vertical-rl;
+}
+
+@media (max-width: 520px) {
+  :host .shell {
+    grid-template-columns: 1fr;
+    min-height: 100vh;
+    padding: 44px 28px 34px 32px;
+  }
+
+  :host .mark {
+    margin-bottom: 38px;
+  }
+
+  :host h1 {
+    font-size: clamp(38px, 12vw, 50px);
+  }
+
+  :host .aside {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host *,
+  :host *::before,
+  :host *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --paper: #181816;
+    --paper-deep: #22211e;
+    --ink: #f0eadf;
+    --muted: #aaa296;
+    --hairline: rgba(240, 234, 223, 0.18);
+    --signal: #8eb2d9;
+    --signal-dark: #a8c6e5;
+    --focus: #b4d0ed;
+    color-scheme: dark;
+  }
+
+  :host .shell {
+    background:
+      linear-gradient(115deg, transparent 0 71%, rgba(240, 234, 223, 0.035) 71% 71.2%, transparent 71.2%),
+      radial-gradient(circle at 84% 14%, rgba(142, 178, 217, 0.1), transparent 29%),
+      var(--paper);
+  }
+
+  :host .shell::after {
+    border-color: rgba(240, 234, 223, 0.08);
+    box-shadow:
+      0 0 0 22px var(--paper),
+      0 0 0 23px rgba(240, 234, 223, 0.06),
+      0 0 0 53px var(--paper),
+      0 0 0 54px rgba(240, 234, 223, 0.04);
+  }
+}
