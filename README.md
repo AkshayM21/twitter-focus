@@ -1,6 +1,8 @@
 # Twitter Focus
 
-Twitter Focus is a small Chrome extension that removes the distracting Home timeline from X/Twitter while leaving the useful parts of the site alone. Direct tweet links, replies, related tweets, profiles, search, notifications, bookmarks, lists, DMs, composing, and the right-hand sidebar continue to work normally.
+Twitter Focus is a Chrome extension that puts the X/Twitter Home feed behind an intentional daily session—while leaving direct tweets, replies, profiles, search, notifications, bookmarks, and DMs available.
+
+By default, Home is paused until you deliberately start a 15-minute session. Only time spent actively viewing the Home feed counts.
 
 The default policy is intentionally simple:
 
@@ -16,7 +18,7 @@ This is a focus aid, not a security boundary. You can still disable or uninstall
 
 ## Install from source
 
-1. Download or clone this repository.
+1. Download or clone this repository. Twitter Focus requires Chrome 111 or newer.
 2. Open `chrome://extensions` in Chrome.
 3. Turn on **Developer mode**.
 4. Click **Load unpacked**.
@@ -33,6 +35,7 @@ Only these routes are restricted:
 - `https://www.x.com/home`
 - `https://twitter.com/home`
 - `https://www.twitter.com/home`
+
 Their trailing-slash, query-string, and fragment variants are restricted too.
 
 Everything else is allowed by default, including future routes that the extension does not recognize. This narrow policy avoids turning the extension into a blanket Twitter blocker.
@@ -84,36 +87,9 @@ npm test
 
 The tests use Node's built-in `node:test` runner and require no test framework. See [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a change.
 
-## Limitations
+## Contributing
 
-- X can change its routes or DOM structure. The extension fails closed on Home when it cannot safely identify the timeline, but live-site smoke testing is still required for releases.
-- Chrome extensions do not cover X's mobile apps or other browsers unless separately ported.
-- Usage is local to a Chrome profile and is not synchronized across devices or profiles.
-- Incognito windows are governed by Chrome's per-extension Incognito permission and can provide an unprotected path if the extension is not enabled there.
-- A user can bypass this focus aid by disabling it, uninstalling it, changing local extension storage, using another profile, or manipulating the system clock.
-- Without a trusted network clock, large manual clock or timezone changes can move the perceived calendar boundary. The extension never sends a network request merely to police the clock.
-- After installing or updating an unpacked extension, existing X/Twitter tabs may need to be reloaded.
-
-## Manual release checklist
-
-Before publishing a release, test the packaged build in a clean Chrome profile:
-
-- [ ] A fresh `/home` load is blocked before the feed becomes visible.
-- [ ] Both **For You** and **Following** are blocked before a session and unlocked during one.
-- [ ] A deliberate session shares one daily allowance across reloads, duplicate tabs, and multiple windows.
-- [ ] Time counts only on a visible, focused Home tab.
-- [ ] Background tabs, unfocused windows, sleep, tweets, DMs, profiles, and other routes do not consume time.
-- [ ] At zero, every Home tab blocks and no override or usage-reset control exists.
-- [ ] The next local day starts locked with a fresh allowance.
-- [ ] Direct tweet links work from a cold browser launch.
-- [ ] Replies, related tweets, profiles, DMs, search, notifications, bookmarks, lists, compose, and the right-hand sidebar are unchanged.
-- [ ] Hard navigation, X's in-app navigation, Back/Forward, redirects, and restored tabs all enforce the same route policy.
-- [ ] Narrow and wide layouts, zoom, light/dark mode, keyboard navigation, and reduced motion remain usable.
-- [ ] Logged-out behavior is safe and comprehensible.
-- [ ] Repeated X rerenders do not duplicate the blocker or create visible feed flashes.
-- [ ] Browser restart and forced service-worker suspension preserve used time.
-- [ ] The final manifest contains only the documented permissions and packaged local code/assets.
-- [ ] Tests pass from a clean checkout.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidance, project constraints, and the manual release checklist.
 
 ## License
 

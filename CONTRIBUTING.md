@@ -31,9 +31,30 @@ Run automated tests:
 npm test
 ```
 
-Then exercise the relevant items in README's manual release checklist. Changes involving timers or persistence should include multi-tab, browser-restart, and service-worker-suspension checks. Changes involving the blocker should include in-app navigation and X rerender checks on both `x.com` and `twitter.com`.
+Then exercise the relevant items in the manual release checklist below. Changes involving timers or persistence should include multi-tab, browser-restart, and service-worker-suspension checks. Changes involving the blocker should include in-app navigation and X rerender checks on both `x.com` and `twitter.com`.
 
 Automated tests should not depend on the live X website. Use pure core tests or deterministic DOM/SPA fixtures; keep the live site for manual release smoke tests.
+
+## Manual release checklist
+
+Before publishing a release, test the packaged build in a clean Chrome profile:
+
+- [ ] A fresh `/home` load is blocked before the feed becomes visible.
+- [ ] Both **For You** and **Following** are blocked before a session and unlocked during one.
+- [ ] A deliberate session shares one daily allowance across reloads, duplicate tabs, and multiple windows.
+- [ ] Time counts only on a visible, focused Home tab.
+- [ ] Background tabs, unfocused windows, sleep, tweets, DMs, profiles, and other routes do not consume time.
+- [ ] At zero, every Home tab blocks and no override or usage-reset control exists.
+- [ ] The next local day starts locked with a fresh allowance.
+- [ ] Direct tweet links work from a cold browser launch.
+- [ ] Replies, related tweets, profiles, DMs, search, notifications, bookmarks, lists, compose, and the right-hand sidebar are unchanged.
+- [ ] Hard navigation, X's in-app navigation, Back/Forward, redirects, and restored tabs all enforce the same route policy.
+- [ ] Narrow and wide layouts, zoom, light/dark mode, keyboard navigation, and reduced motion remain usable.
+- [ ] Logged-out behavior is safe and comprehensible.
+- [ ] Repeated X rerenders do not duplicate the blocker or create visible feed flashes.
+- [ ] Browser restart and forced service-worker suspension preserve used time.
+- [ ] The final manifest contains only the documented permissions and packaged local code/assets.
+- [ ] Tests pass from a clean checkout.
 
 ## Privacy and security reports
 
