@@ -13,7 +13,7 @@
   const VALID_HOSTS = new Set(["x.com", "www.x.com", "twitter.com", "www.twitter.com"]);
   const CORE = globalThis.TwitterFocusCore || {};
   const MESSAGE_TYPES = CORE.MESSAGE_TYPES || {};
-  const MINIMAL_SHADOW_CSS = ":host{display:block;min-height:100vh;padding:32px;color:#1d1c19;background:#f4f1e8;font:16px/1.5 system-ui,sans-serif}:host .shell{display:block}:host button,:host a{font:inherit}";
+  const MINIMAL_SHADOW_CSS = ":host{display:block;min-height:100vh;padding:32px;color:#1d1c19;background:#f4f1e8;font:16px/1.5 system-ui,sans-serif}:host .shell{display:block}:host .mark{display:block;width:48px;height:48px;margin:0 0 48px}:host button,:host a{font:inherit}";
 
   const instanceId = globalThis.crypto?.randomUUID?.()
     || `twitter-focus-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -155,7 +155,7 @@
 
     const style = document.createElement("style");
     style.textContent = css;
-    targetShadow.prepend(style);
+    targetShadow.append(style);
   }
 
   function findPrimaryColumn() {
@@ -327,10 +327,10 @@
 
   function makeIcon() {
     return `
-      <svg class="mark" aria-hidden="true" viewBox="0 0 48 48">
+      <svg class="mark" aria-hidden="true" focusable="false" viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="1.25">
         <circle cx="24" cy="24" r="20.5"></circle>
         <path d="M15 25.5h18M24 16.5v18"></path>
-        <circle class="mark-dot" cx="24" cy="24" r="3.25"></circle>
+        <circle class="mark-dot" cx="24" cy="24" r="3.25" fill="currentColor" stroke="currentColor"></circle>
       </svg>`;
   }
 

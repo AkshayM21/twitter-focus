@@ -72,3 +72,14 @@ test("foreground Home checks do not trust stale SPA sender URLs", () => {
   assert.doesNotMatch(foregroundCheck, /senderUrl|sender\.url|sender\.tab\.url/);
   assert.match(foregroundCheck, /chrome\.tabs\.get\(sender\.tab\.id\)/);
 });
+
+test("the blocker icon has stable presentation before async styles load", () => {
+  const contentSource = read("src/content/content.js");
+
+  assert.match(contentSource, /MINIMAL_SHADOW_CSS[^\n]+\.mark\{display:block;width:48px;height:48px/);
+  assert.match(
+    contentSource,
+    /<svg class="mark"[^>]+width="48" height="48" fill="none" stroke="currentColor"/,
+  );
+  assert.match(contentSource, /class="mark-dot"[^>]+fill="currentColor" stroke="currentColor"/);
+});
