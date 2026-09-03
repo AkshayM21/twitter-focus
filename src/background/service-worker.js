@@ -7,7 +7,7 @@ const {
   MESSAGE_TYPES,
   MODES,
   STORAGE_KEYS,
-  isHomeUrl,
+  isFocusedHomeTab,
   localDayKey,
   makeSnapshot,
   normalizeGate,
@@ -415,8 +415,7 @@ function leaseMatches(leaseId, sender) {
 }
 
 async function senderIsFocusedHome(sender) {
-  const senderUrl = sender?.url || (sender?.tab && sender.tab.url);
-  if (!sender?.tab || typeof sender.tab.id !== "number" || !isHomeUrl(senderUrl)) {
+  if (!sender?.tab || typeof sender.tab.id !== "number") {
     return false;
   }
 
@@ -425,15 +424,15 @@ async function senderIsFocusedHome(sender) {
       return false;
     }
     const tab = await chrome.tabs.get(sender.tab.id);
-    if (!tab || typeof tab.url !== "string" || !isHomeUrl(tab.url) || tab.active !== true) {
+    if (!tab || typeof tab.windowId !== "number") {
       return false;
     }
 
-    if (!chrome.windows || typeof chrome.windows.get !== "function" || typeof tab.windowId !== "number") {
+    if (!chrome.windows || typeof chrome.windows.get !== "function") {
       return false;
     }
     const browserWindow = await chrome.windows.get(tab.windowId);
-    return browserWindow?.focused === true;
+    return isFocusedHomeTab(tab, browserWindow);
   } catch (_error) {
     return false;
   }

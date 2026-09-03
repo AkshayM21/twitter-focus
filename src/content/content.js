@@ -9,6 +9,7 @@
   const URL_POLL_MS = 250;
   const PULSE_MS = 1_000;
   const STALE_PULSE_MS = 2_500;
+  const LEASE_RETRY_DELAYS_MS = [150, 300, 600, 1_200, 2_500];
   const VALID_HOSTS = new Set(["x.com", "www.x.com", "twitter.com", "www.twitter.com"]);
   const CORE = globalThis.TwitterFocusCore || {};
   const MESSAGE_TYPES = CORE.MESSAGE_TYPES || {};
@@ -34,6 +35,8 @@
   let actionPending = false;
   let mutationFrame = 0;
   let waitingForPrimary = onHome;
+  let leaseRetryTimer = null;
+  let leaseRetryAttempt = 0;
 
   // This runs at document_start. The stylesheet's gate is already registered by
   // Chrome, so setting these attributes before X paints prevents a feed flash.
@@ -216,6 +219,7 @@
 
     if (host && host.isConnected && host.parentElement === primary && isUsableOwnedHost(host)) {
       host.dataset.placement = "primary";
+      updateSessionDockPosition(primary);
       return host;
     }
 
@@ -240,6 +244,7 @@
     }
 
     host.dataset.placement = "primary";
+    updateSessionDockPosition(primary);
     host.hidden = false;
     host.dataset.view = view;
     render();
@@ -249,6 +254,13 @@
       });
     }
     return host;
+  }
+
+  function updateSessionDockPosition(primary = findPrimaryColumn()) {
+    if (!host || !primary) return;
+    const primaryRight = primary.getBoundingClientRect().right;
+    const rightInset = Math.max(12, globalThis.innerWidth - primaryRight + 12);
+    host.style.setProperty("--session-right", `${Math.round(rightInset)}px`);
   }
 
   function showBlocker(nextView, message = "") {
@@ -395,11 +407,12 @@
     if (view === "active" && snapshot?.status === "unlocked"
         && host.dataset.placement === "primary") {
       shadow.querySelector(".shell")?.remove();
-      const existingStrip = shadow.querySelector(".session-strip");
-      if (existingStrip) {
-        const time = existingStrip.querySelector(".session-time");
+      const existingDock = shadow.querySelector(".session-dock");
+      if (existingDock) {
+        const time = existingDock.querySelector(".session-time");
         if (time) time.textContent = formatTime(snapshot.remainingMs);
-        const pause = existingStrip.querySelector('[data-action="pause"]');
+        if (time) time.setAttribute("aria-label", `${formatTime(snapshot.remainingMs)} of Home time remaining`);
+        const pause = existingDock.querySelector('[data-action="pause"]');
         if (pause) {
           pause.disabled = actionPending;
           if (actionPending) pause.setAttribute("aria-disabled", "true");
@@ -407,17 +420,15 @@
         }
         return;
       }
-      const strip = document.createElement("section");
-      strip.className = "session-strip";
-      strip.setAttribute("aria-label", "Home feed session");
-      strip.innerHTML = `
+      const dock = document.createElement("section");
+      dock.className = "session-dock";
+      dock.setAttribute("aria-label", "Home feed session controls");
+      dock.innerHTML = `
         <span class="session-signal" aria-hidden="true"></span>
-        <span class="session-name">Home is open</span>
-        <span class="session-time" aria-live="off">${formatTime(snapshot.remainingMs)}</span>
-        <span class="session-remaining">remaining</span>
-        <button class="strip-button" data-action="pause"${actionPending ? " disabled aria-disabled=\"true\"" : ""}>Pause</button>`;
-      strip.addEventListener("click", handleBlockerClick);
-      shadow.append(strip);
+        <span class="session-time" role="timer" aria-live="off" aria-label="${formatTime(snapshot.remainingMs)} of Home time remaining">${formatTime(snapshot.remainingMs)}</span>
+        <button class="dock-button" type="button" data-action="pause" aria-label="Pause Home session"${actionPending ? " disabled aria-disabled=\"true\"" : ""}>Pause</button>`;
+      dock.addEventListener("click", handleBlockerClick);
+      shadow.append(dock);
       return;
     }
 
@@ -431,7 +442,7 @@
     const busy = actionPending ? " disabled aria-disabled=\"true\"" : "";
     const primary = model.primary.replace("<button ", `<button${busy} `);
 
-    shadow.querySelector(".session-strip")?.remove();
+    shadow.querySelector(".session-dock")?.remove();
     shadow.querySelector(".shell")?.remove();
     const shell = document.createElement("section");
     shell.className = "shell";
@@ -498,6 +509,7 @@
 
   async function pauseSession() {
     const generation = routeGeneration;
+    const wasActive = view === "active";
     showBlocker("loading");
     await endLease();
     try {
@@ -506,6 +518,7 @@
       acceptSnapshot(response?.snapshot);
       if (!response?.ok) throw new Error(responseError(response, "The session could not be paused."));
       showBlocker(snapshot?.status === "exhausted" ? "exhausted" : "locked");
+      if (wasActive && snapshot?.status === "exhausted") bringBlockerIntoView();
     } catch (error) {
       if (onHome && generation === routeGeneration) showBlocker("error", error.message);
     }
@@ -568,9 +581,16 @@
       }
       acceptSnapshot(response?.snapshot);
       if (!response?.ok || !response.leaseId) {
+        const code = typeof response?.error === "object" ? response.error.code : response?.error;
+        if (code === "NOT_FOREGROUND_HOME" && snapshot?.status === "unlocked") {
+          showBlocker("unlocked");
+          scheduleLeaseRetry(generation);
+          return;
+        }
         throw new Error(responseError(response, "Active time could not be started."));
       }
       leaseId = response.leaseId;
+      clearLeaseRetry();
       lastPulseAt = performance.now();
       startPulseLoop();
       revealFeed();
@@ -611,6 +631,12 @@
           await applySnapshot(generation);
           return;
         }
+        if (code === "NOT_FOREGROUND_HOME" && snapshot?.status === "unlocked") {
+          clearLeaseLocally();
+          showBlocker("unlocked");
+          scheduleLeaseRetry(generation);
+          return;
+        }
         throw new Error(responseError(response, "Active time could not be updated."));
       }
 
@@ -619,6 +645,7 @@
         const shouldFocusBlocker = hasFocusedNativeHomeElement();
         clearLeaseLocally();
         showBlocker(snapshot?.status || "exhausted");
+        bringBlockerIntoView();
         if (shouldFocusBlocker) focusBlockerHeading();
         return;
       }
@@ -632,11 +659,38 @@
     }
   }
 
+  function scheduleLeaseRetry(generation) {
+    if (leaseRetryTimer) return;
+    const delayIndex = Math.min(leaseRetryAttempt, LEASE_RETRY_DELAYS_MS.length - 1);
+    const delay = LEASE_RETRY_DELAYS_MS[delayIndex];
+    leaseRetryAttempt = Math.min(leaseRetryAttempt + 1, LEASE_RETRY_DELAYS_MS.length - 1);
+    leaseRetryTimer = setTimeout(() => {
+      leaseRetryTimer = null;
+      if (onHome && generation === routeGeneration && snapshot?.status === "unlocked" && shouldBeActive()) {
+        void applySnapshot(generation);
+      }
+    }, delay);
+  }
+
+  function clearLeaseRetry() {
+    clearTimeout(leaseRetryTimer);
+    leaseRetryTimer = null;
+    leaseRetryAttempt = 0;
+  }
+
+  function bringBlockerIntoView() {
+    requestAnimationFrame(() => {
+      if (!onHome || view === "active" || !host?.isConnected) return;
+      host.scrollIntoView({ block: "start", behavior: "auto" });
+    });
+  }
+
   function clearLeaseLocally() {
     leaseId = null;
     clearInterval(pulseTimer);
     pulseTimer = null;
     lastPulseAt = 0;
+    clearLeaseRetry();
   }
 
   async function endLease() {
@@ -669,6 +723,7 @@
     routeGeneration += 1;
     onHome = true;
     snapshot = null;
+    clearLeaseRetry();
     showBlocker("loading");
     void refreshSnapshot();
   }
@@ -676,6 +731,7 @@
   function leaveHome() {
     routeGeneration += 1;
     onHome = false;
+    clearLeaseRetry();
     setDocumentGate(false, false);
     const oldHost = host;
     host = null;
@@ -744,10 +800,16 @@
     if (onHome) hideAndRevalidate();
   });
   addEventListener("focus", () => {
-    if (onHome) hideAndRevalidate();
+    if (onHome) {
+      clearLeaseRetry();
+      hideAndRevalidate();
+    }
   });
   addEventListener("blur", () => {
     if (onHome) hideAndRevalidate();
+  });
+  addEventListener("resize", () => {
+    if (onHome) updateSessionDockPosition();
   });
   addEventListener("pagehide", () => {
     if (onHome) void endLease();
@@ -759,6 +821,7 @@
   observeNavigationApi();
   chrome.runtime.onMessage.addListener((message) => {
     if (message?.type !== messageType("STATE_CHANGED") || !message.snapshot) return;
+    const wasActive = view === "active";
     acceptSnapshot(message.snapshot);
     if (!onHome) return;
 
@@ -768,6 +831,7 @@
     const shouldFocusBlocker = hasFocusedNativeHomeElement();
     showBlocker("loading");
     void applySnapshot(generation).finally(() => {
+      if (wasActive && snapshot?.status === "exhausted") bringBlockerIntoView();
       if (shouldFocusBlocker && onHome && generation === routeGeneration) focusBlockerHeading();
     });
   });

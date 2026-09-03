@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { isHomeUrl } = require("../src/shared/core.js");
+const { isFocusedHomeTab, isHomeUrl } = require("../src/shared/core.js");
 
 test("restricts the exact Home route on supported hosts", () => {
   const restricted = [
@@ -72,4 +72,13 @@ test("accepts URL objects without mutating them", () => {
   const before = url.href;
   assert.equal(isHomeUrl(url), true);
   assert.equal(url.href, before);
+});
+
+test("focused Home validation uses the current tab and window state", () => {
+  const tab = { id: 9, url: "https://x.com/home?from=messages", active: true };
+  assert.equal(isFocusedHomeTab(tab, { focused: true }), true);
+  assert.equal(isFocusedHomeTab({ ...tab, active: false }, { focused: true }), false);
+  assert.equal(isFocusedHomeTab({ ...tab, url: "https://x.com/messages" }, { focused: true }), false);
+  assert.equal(isFocusedHomeTab(tab, { focused: false }), false);
+  assert.equal(isFocusedHomeTab(null, { focused: true }), false);
 });

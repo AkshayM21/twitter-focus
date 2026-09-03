@@ -50,3 +50,25 @@ test("extension protocol has no override or usage-reset control surface", () => 
     /\boverride\b|reset[ _-]?usage|usage[ _-]?reset/i
   );
 });
+
+test("active Home has persistent pause controls and completion recovery", () => {
+  const contentSource = read("src/content/content.js");
+  const contentStyles = read("src/content/content.css");
+
+  assert.match(contentSource, /className = "session-dock"/);
+  assert.match(contentSource, /aria-label="Pause Home session"/);
+  assert.match(contentSource, /scrollIntoView\(\{ block: "start", behavior: "auto" \}\)/);
+  assert.match(contentSource, /code === "NOT_FOREGROUND_HOME" && snapshot\?\.status === "unlocked"/);
+  assert.match(contentStyles, /:host \.session-dock \{[\s\S]*position: fixed;/);
+});
+
+test("foreground Home checks do not trust stale SPA sender URLs", () => {
+  const workerSource = read("src/background/service-worker.js");
+  const foregroundCheck = workerSource.slice(
+    workerSource.indexOf("async function senderIsFocusedHome"),
+    workerSource.indexOf("function bumpRevision"),
+  );
+
+  assert.doesNotMatch(foregroundCheck, /senderUrl|sender\.url|sender\.tab\.url/);
+  assert.match(foregroundCheck, /chrome\.tabs\.get\(sender\.tab\.id\)/);
+});

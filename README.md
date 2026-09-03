@@ -10,6 +10,7 @@ The default policy is intentionally simple:
 - You may deliberately start a feed session with a total allowance of 15 minutes per local calendar day.
 - Time counts only while `/home` is visible and focused.
 - Leaving Home, switching tabs, minimizing Chrome, or moving focus to another window pauses the timer.
+- While Home is open, a discreet fixed control shows the remaining time and lets you pause immediately.
 - At zero, Home remains blocked until the next local calendar day.
 - There is no override and no usage-reset control.
 - Both **For You** and **Following** are covered because both live on `/home`.
@@ -40,7 +41,7 @@ Their trailing-slash, query-string, and fragment variants are restricted too.
 
 Everything else is allowed by default, including future routes that the extension does not recognize. This narrow policy avoids turning the extension into a blanket Twitter blocker.
 
-Starting a session unlocks Home only while daily time remains. Multiple starts do not create multiple allowances; they all draw from the same daily total. The extension pauses accounting whenever Home is not both visible and focused. A normal Manifest V3 service-worker suspension does not lose usage. A browser restart preserves usage and relocks Home, requiring another deliberate start.
+Starting a session unlocks Home only while daily time remains. Multiple starts do not create multiple allowances; they all draw from the same daily total. A small control stays visible beside the Home timeline with the remaining time and a Pause button. The extension pauses accounting whenever Home is not both visible and focused. When the allowance reaches zero, it brings the completion message into view. A normal Manifest V3 service-worker suspension does not lose usage. A browser restart preserves usage and relocks Home, requiring another deliberate start.
 
 At local midnight, the next interaction creates a fresh 15-minute allowance in the locked state. The reset is lazy, so Chrome does not need to be running at midnight. Day length follows local calendar midnights, including daylight-saving transitions.
 

@@ -77,6 +77,14 @@
     }
   }
 
+  function isFocusedHomeTab(tab, browserWindow) {
+    return !!tab &&
+      typeof tab.id === "number" &&
+      tab.active === true &&
+      isHomeUrl(tab.url) &&
+      browserWindow?.focused === true;
+  }
+
   function normalizeSettings(value) {
     const source = value && typeof value === "object" ? value : {};
     const mode = Object.values(MODES).includes(source.mode)
@@ -261,6 +269,7 @@
     localDayKey,
     nextLocalDayKey,
     isHomeUrl,
+    isFocusedHomeTab,
     normalizeSettings,
     normalizeSettingsRecord,
     validateSettingsPatch,
