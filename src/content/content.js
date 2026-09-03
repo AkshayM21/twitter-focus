@@ -461,7 +461,7 @@
           <span aria-hidden="true">·</span>
           <a href="/explore">Search</a>
           <span aria-hidden="true">·</span>
-          <button class="text-button" data-action="settings">Settings</button>
+          <button class="text-button" data-action="settings"${busy}>Settings</button>
         </nav>
       </div>
       <p class="aside">The rest of X is untouched.</p>`;
@@ -475,18 +475,23 @@
     if (!control || actionPending) return;
     const action = control.dataset.action;
 
-    if (action === "settings") {
-      chrome.runtime.openOptionsPage();
-      return;
-    }
-
     actionPending = true;
     render();
-    if (action === "start") await startSession();
+    if (action === "settings") await openSettings();
+    else if (action === "start") await startSession();
     else if (action === "pause") await pauseSession();
     else if (action === "retry") await refreshSnapshot();
     actionPending = false;
     render();
+  }
+
+  async function openSettings() {
+    try {
+      const response = await send("OPEN_OPTIONS_PAGE");
+      if (!response?.ok) throw new Error(responseError(response, "Settings could not be opened."));
+    } catch (error) {
+      if (onHome) showBlocker("error", error.message);
+    }
   }
 
   function acceptSnapshot(nextSnapshot) {

@@ -4,6 +4,7 @@ const MESSAGE_TYPES = {
   GET_SNAPSHOT: "GET_SNAPSHOT",
   START_SESSION: "START_SESSION",
   PAUSE_SESSION: "PAUSE_SESSION",
+  OPEN_OPTIONS_PAGE: "OPEN_OPTIONS_PAGE",
 };
 
 const HOME_URL = "https://x.com/home";
@@ -151,6 +152,23 @@ function renderLoadError(error) {
   announceStatus("error", "Home is paused because the session status could not be restored.");
 }
 
+async function openSettings() {
+  elements.settingsButton.disabled = true;
+  elements.actionError.hidden = true;
+  try {
+    await send(MESSAGE_TYPES.OPEN_OPTIONS_PAGE);
+    window.close();
+  } catch (error) {
+    window.clearInterval(pollTimer);
+    pollTimer = null;
+    elements.actionError.textContent = normalizeError(error);
+    elements.actionError.hidden = false;
+    announceStatus("settings-error", "Settings could not be opened.");
+  } finally {
+    elements.settingsButton.disabled = false;
+  }
+}
+
 async function loadSnapshot({ silent = false } = {}) {
   try {
     const nextSnapshot = await send(MESSAGE_TYPES.GET_SNAPSHOT);
@@ -211,7 +229,7 @@ async function handlePrimaryAction() {
 }
 
 elements.primaryAction.addEventListener("click", handlePrimaryAction);
-elements.settingsButton.addEventListener("click", () => chrome.runtime.openOptionsPage());
+elements.settingsButton.addEventListener("click", openSettings);
 
 loadSnapshot();
 pollTimer = window.setInterval(() => loadSnapshot({ silent: true }), 1000);

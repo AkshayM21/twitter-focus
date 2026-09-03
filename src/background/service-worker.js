@@ -177,11 +177,39 @@ async function handleMessage(message, sender) {
       return pulseActivity(message, sender);
     case MESSAGE_TYPES.ACTIVITY_END:
       return endActivity(message, sender);
+    case MESSAGE_TYPES.OPEN_OPTIONS_PAGE:
+      return openOptionsPage();
     case MESSAGE_TYPES.UPDATE_SETTINGS:
       return updateSettings(message);
     default:
       return failure("UNKNOWN_MESSAGE", `Unsupported message type: ${message.type}`, snapshot());
   }
+}
+
+async function openOptionsPage() {
+  try {
+    if (typeof chrome.runtime.openOptionsPage === "function") {
+      await chrome.runtime.openOptionsPage();
+      return { ok: true };
+    }
+  } catch (_error) {
+    // Fall back to opening the bundled page directly below.
+  }
+
+  try {
+    if (typeof chrome.runtime.getURL === "function" && typeof chrome.tabs?.create === "function") {
+      await chrome.tabs.create({ url: chrome.runtime.getURL("src/options/options.html") });
+      return { ok: true };
+    }
+  } catch (_error) {
+    // Return a recoverable UI error below.
+  }
+
+  return failure(
+    "OPTIONS_UNAVAILABLE",
+    "Settings could not be opened. Try again from the extension menu.",
+    snapshot(),
+  );
 }
 
 async function startSession() {

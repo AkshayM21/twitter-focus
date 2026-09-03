@@ -14,8 +14,11 @@ const WORKER_SOURCE = fs.readFileSync(path.join(ROOT, "src/background/service-wo
 function createWorkerHarness({
   currentTab = { id: 7, windowId: 2, active: true, url: "https://x.com/home" },
   windowFocused = true,
+  optionsOpenFails = false,
 } = {}) {
   let messageListener = null;
+  let optionsOpenCount = 0;
+  const createdTabUrls = [];
   const localValues = {};
   const sessionValues = {};
   let context;
@@ -25,6 +28,11 @@ function createWorkerHarness({
       onInstalled: { addListener() {} },
       onStartup: { addListener() {} },
       onMessage: { addListener(listener) { messageListener = listener; } },
+      async openOptionsPage() {
+        optionsOpenCount += 1;
+        if (optionsOpenFails) throw new Error("Options API unavailable");
+      },
+      getURL(relativePath) { return `chrome-extension://test/${relativePath}`; },
     },
     storage: {
       local: {
@@ -42,6 +50,7 @@ function createWorkerHarness({
     tabs: {
       async get() { return { ...currentTab }; },
       async query() { return []; },
+      async create({ url }) { createdTabUrls.push(url); },
       async sendMessage() {},
     },
     windows: {
@@ -80,7 +89,11 @@ function createWorkerHarness({
     });
   }
 
-  return { send };
+  return {
+    send,
+    get optionsOpenCount() { return optionsOpenCount; },
+    get createdTabUrls() { return [...createdTabUrls]; },
+  };
 }
 
 test("activity begins from the current Home tab despite stale SPA sender URLs", async () => {
@@ -117,4 +130,22 @@ test("activity still requires the current tab to be focused Home", async () => {
     assert.equal(response.ok, false);
     assert.equal(response.error.code, "NOT_FOREGROUND_HOME");
   }
+});
+
+test("settings requests open the declared options page from the service worker", async () => {
+  const worker = createWorkerHarness();
+  const response = await worker.send({ type: "OPEN_OPTIONS_PAGE" });
+
+  assert.equal(response.ok, true);
+  assert.equal(worker.optionsOpenCount, 1);
+  assert.deepEqual(worker.createdTabUrls, []);
+});
+
+test("settings requests fall back to the bundled options URL", async () => {
+  const worker = createWorkerHarness({ optionsOpenFails: true });
+  const response = await worker.send({ type: "OPEN_OPTIONS_PAGE" });
+
+  assert.equal(response.ok, true);
+  assert.equal(worker.optionsOpenCount, 1);
+  assert.deepEqual(worker.createdTabUrls, ["chrome-extension://test/src/options/options.html"]);
 });

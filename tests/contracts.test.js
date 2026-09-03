@@ -83,3 +83,17 @@ test("the blocker icon has stable presentation before async styles load", () => 
   );
   assert.match(contentSource, /class="mark-dot"[^>]+fill="currentColor" stroke="currentColor"/);
 });
+
+test("both Settings buttons use the background options-page action", () => {
+  const coreSource = read("src/shared/core.js");
+  const workerSource = read("src/background/service-worker.js");
+  const contentSource = read("src/content/content.js");
+  const popupSource = read("src/popup/popup.js");
+
+  assert.match(coreSource, /OPEN_OPTIONS_PAGE: "OPEN_OPTIONS_PAGE"/);
+  assert.match(workerSource, /case MESSAGE_TYPES\.OPEN_OPTIONS_PAGE:[\s\S]*return openOptionsPage\(\)/);
+  assert.match(contentSource, /send\("OPEN_OPTIONS_PAGE"\)/);
+  assert.match(popupSource, /send\(MESSAGE_TYPES\.OPEN_OPTIONS_PAGE\)/);
+  assert.doesNotMatch(contentSource, /chrome\.runtime\.openOptionsPage\(\)/);
+  assert.doesNotMatch(popupSource, /chrome\.runtime\.openOptionsPage\(\)/);
+});

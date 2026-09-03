@@ -87,6 +87,11 @@ button {
   text-underline-offset: 3px;
 }
 
+.text-button:disabled {
+  cursor: wait;
+  opacity: 0.56;
+}
+
 .rule {
   width: 34px;
   height: 2px;
